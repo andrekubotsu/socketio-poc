@@ -11,3 +11,7 @@ Socket.io uses websocket connection, it means that the communication between ser
 - it´s possible to send messages to all users (broadcast) that aren´t delivered to who sent;
 - it´s possible to open communication between client and server to pass some callback
 - it´s possible to join multiple rooms and the socket.id is a room by itself (private messages)
+
+## Interesting resources
+
+- @socket.io/admin-ui - https://admin.socket.io/#/sockets - uses current application address

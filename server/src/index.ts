@@ -1,11 +1,13 @@
 import fastify from "fastify";
 import fastifyIO from "fastify-socket.io";
+import { instrument } from '@socket.io/admin-ui'
 
 const server = fastify();
 server.register(fastifyIO, {
-    cors: {
-        origin: ['http://localhost:5173'],
-    }
+  cors: {
+    origin: ["http://localhost:5173", "https://admin.socket.io"],
+    credentials: true
+  },
 });
 
 server.get("/", (req, reply) => {
@@ -29,6 +31,9 @@ server.ready().then(() => {
         callback(`Joined ${room}!`)
     })
   });
+  instrument(server.io, { auth:false })
 });
+
+
 
 server.listen({port:3002});
