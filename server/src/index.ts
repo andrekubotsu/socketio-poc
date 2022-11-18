@@ -14,6 +14,8 @@ server.get("/", (req, reply) => {
   server.io.emit("hello");
 });
 
+
+
 server.ready().then(() => {
   // we need to wait for the server to be ready, else `server.io` is undefined
   server.io.on("connection", (socket) => {
@@ -31,8 +33,31 @@ server.ready().then(() => {
         callback(`Joined ${room}!`)
     })
   });
+
+  // Configuring another namespace
+  const userIo = server.io.of("/user");
+
+  userIo.on("connection", (socket) => {
+    console.log("connected to user namespace" + socket.data.username);
+  })
+
+  userIo.use((socket, next)=> {
+    if (socket.handshake.auth.token) {
+      socket.data.username = getUsernameFromToken(socket.handshake.auth.token);
+      next();
+    } else {
+      // it sends error message to the client
+      next(new Error("Authentication error"));
+    }
+  })
+
+  function getUsernameFromToken(token: string) {
+    return token;
+  }
+
   instrument(server.io, { auth:false })
 });
+
 
 
 

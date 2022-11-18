@@ -2,6 +2,10 @@ import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 
 const socket = io("http://localhost:3002");
+// using namespaces
+const userSocket = io("http://localhost:3002/user", {
+  auth: { token: "Test" },
+});
 
 function App() {
   const [messages, setMessages] = useState([]);
@@ -9,11 +13,15 @@ function App() {
   const [joinedRoom, setJoinedRoom] = useState("");
   const [room, setRoom] = useState("");
 
-  socket.on("connect", () => {
+  userSocket.on("connect", () => {
     setMessages([...messages, `You connected with id: ${socket.id}`]);
   });
 
-  socket.on("receive-message", (message) => {
+  userSocket.on("connect_error", (err) => {
+    setMessages([...messages, `${err}`]);
+  });
+
+  userSocket.on("receive-message", (message) => {
     setMessages([...messages, message]);
   });
 
@@ -22,13 +30,13 @@ function App() {
   function handleSubmit() {
     setMessages([...messages, chat]);
     setChat("");
-    socket.emit("send-message", chat, joinedRoom);
+    userSocket.emit("send-message", chat, joinedRoom);
   }
 
   function handleRoom() {
     setJoinedRoom(room);
     setRoom("");
-    socket.emit("join-room", room, (message) => {
+    userSocket.emit("join-room", room, (message) => {
       setMessages([...messages, message]);
     });
   }
