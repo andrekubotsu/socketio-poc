@@ -1,22 +1,34 @@
-// import { Server } from 'socket.io'
+import fastify from "fastify";
+import fastifyIO from "fastify-socket.io";
 
-// const io = new Server(3001, {})
+const server = fastify();
+server.register(fastifyIO, {
+    cors: {
+        origin: ['http://localhost:5173'],
+    }
+});
 
-import Fastify from 'fastify'
-const fastify = Fastify({
-  logger: true
-})
+server.get("/", (req, reply) => {
+  server.io.emit("hello");
+});
 
-fastify.get('/', async (request, reply) => {
-  return { hello: 'world' }
-})
+server.ready().then(() => {
+  // we need to wait for the server to be ready, else `server.io` is undefined
+  server.io.on("connection", (socket) => {
+    console.log(socket.id)
+    socket.on('send-message', (message, room) => {
+        if (room === "") {
+          socket.broadcast.emit("receive-message", message);
+        } else {
+          socket.to(room).emit("receive-message", message);
+        }
+    })
 
-const start = async () => {
-  try {
-    await fastify.listen({ port: 3002 })
-  } catch (err) {
-    fastify.log.error(err)
-    process.exit(1)
-  }
-}
-start()
+    socket.on('join-room', (room, callback) => {
+        socket.join(room)
+        callback(`Joined ${room}!`)
+    })
+  });
+});
+
+server.listen({port:3002});
